@@ -3,7 +3,6 @@ import time
 from neurosdk.scanner import Scanner
 from neurosdk.sensor import SensorFamily
 
-from src.brainbit.check_resistance import CheckResistance
 from src.core.log_config import logger
 
 
@@ -26,7 +25,7 @@ class ScanDevices:
         self.sensors = self.scanner.sensors()
         logger.info(f"Found {len(self.sensors)} devices")
         if len(self.sensors) > 0:
-            logger.info(f"Devices: {self.sensors}")
+            # logger.info(f"Devices: {self.sensors}")
             return self.sensors
         else:
             return 'No devices'

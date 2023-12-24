@@ -1,15 +1,24 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QApplication, QWidget, QLabel, QFrame
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QPalette
+
+from src.ui.check_resistance import CheckResistance
 
 from src.core.log_config import logger
 
 
+def on_button_clicked(device):
+    # Perform an action with the device
+    pass
+
+
 class ChooseDevice(QMainWindow):
+    rescan_requested = pyqtSignal()
+
     def __init__(self, devices):
         super(QMainWindow, self).__init__()
-        self.setup_ui()
         self.devices = devices
+        self.setup_ui()
 
     def setup_ui(self):
         # Set window size to 800x600
@@ -49,8 +58,8 @@ class ChooseDevice(QMainWindow):
         layout = QVBoxLayout(self.content_area)
 
         # Create a button for each device
-        for device in self.devices:
-            button = QPushButton(device.SerialNumber, self)
+        for i, device in enumerate(self.devices):
+            button = QPushButton(str(device.SerialNumber), self)
             button.setStyleSheet("""
                 QPushButton {
                     background-color: #87CEEB;
@@ -65,7 +74,33 @@ class ChooseDevice(QMainWindow):
                     background-color: #66B2FF;
                 }
             """)  # Soft cyan color
+            button.clicked.connect(lambda checked, device=device: self.on_button_clicked(device))
             layout.addWidget(button)
+
+        self.rescan_button = QPushButton("Rescan", self)
+        self.rescan_button.setStyleSheet("""
+                        QPushButton {
+                            background-color: #87CEEB;
+                            font: 20pt 'Arial';
+                            color: #FFFFFF;
+                            border: none;
+                            border-radius: 15px;
+                            padding: 10px;
+                            min-width: 100px;
+                        }
+                        QPushButton:hover {
+                            background-color: #66B2FF;
+                        }
+                    """)
+        self.rescan_button.clicked.connect(self.rescan_requested.emit)
+        layout.addWidget(self.rescan_button)
 
         # Set the layout of the content_area to the QVBoxLayout
         self.content_area.setLayout(layout)
+
+    def on_button_clicked(self, device):
+        # Perform an action with the device
+        self.hide()
+        self.check_resistance = CheckResistance(device)
+        self.check_resistance.show()
+

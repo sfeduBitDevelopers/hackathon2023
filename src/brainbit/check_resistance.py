@@ -1,15 +1,16 @@
 import concurrent.futures
 
 from neurosdk.cmn_types import *
+from neurosdk.scanner import Scanner
 from time import sleep
 
 from src.core.log_config import logger
 
 
-class CheckResistance:
-    def __init__(self, device, scanner):
+class BrainbitCheckResistance:
+    def __init__(self, device):
         self.device = device
-        self.scanner = scanner
+        self.scanner = Scanner([SensorFamily.LEBrainBit])
         self.resistance = {"O1": [], "O2": [], "T3": [], "T4": []}
 
     def on_resist_received(self, sensor, data):

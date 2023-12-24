@@ -1,11 +1,10 @@
-import concurrent.futures
-
 from PyQt5.QtGui import QPalette, QColor
 from PyQt5.QtWidgets import QMainWindow, QProgressBar, QApplication, QLabel, QFrame, QMessageBox
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 
 from src.brainbit.connect import ScanDevices
 from src.ui.choose_device import ChooseDevice
+from src.core.log_config import logger
 
 
 def scaner():
@@ -25,6 +24,7 @@ class ScanThread(QThread):
 class ProgressBarWindow(QMainWindow):
     def __init__(self):
         super(QMainWindow, self).__init__()
+        self.devices = None
         self.setup_ui()
 
     def start_pr_bar(self):
@@ -96,7 +96,7 @@ class ProgressBarWindow(QMainWindow):
         if devices == 'No devices':
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Information)
-            msg.setText("No devices found. Would you like to start scanning again?")
+            msg.setText("Устройства не были найдены. Повторить поиск?")
             msg.setWindowTitle("No Devices Found")
             msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
@@ -111,9 +111,17 @@ class ProgressBarWindow(QMainWindow):
                 # If the user clicked "Cancel", exit the program
                 QApplication.quit()
         else:
-            self.choose_device = ChooseDevice(devices)
+            self.devices = devices
+            logger.info(self.devices)
+            self.choose_device = ChooseDevice(self.devices)
+            self.choose_device.rescan_requested.connect(self.restart_scan)
             self.choose_device.show()
             self.hide()
+
+    def restart_scan(self):
+        self.hide()
+        self.new_scan_window = ProgressBarWindow()
+        self.new_scan_window.show()
 
     def update_progress_bar(self):
         # Increase the value of the progress bar by 1
