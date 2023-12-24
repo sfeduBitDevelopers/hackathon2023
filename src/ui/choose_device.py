@@ -7,11 +7,6 @@ from src.ui.check_resistance import CheckResistance
 from src.core.log_config import logger
 
 
-def on_button_clicked(device):
-    # Perform an action with the device
-    pass
-
-
 class ChooseDevice(QMainWindow):
     rescan_requested = pyqtSignal()
 
@@ -77,7 +72,7 @@ class ChooseDevice(QMainWindow):
             button.clicked.connect(lambda checked, device=device: self.on_button_clicked(device))
             layout.addWidget(button)
 
-        self.rescan_button = QPushButton("Rescan", self)
+        self.rescan_button = QPushButton("Начать поиск заново", self)
         self.rescan_button.setStyleSheet("""
                         QPushButton {
                             background-color: #87CEEB;
@@ -92,15 +87,18 @@ class ChooseDevice(QMainWindow):
                             background-color: #66B2FF;
                         }
                     """)
-        self.rescan_button.clicked.connect(self.rescan_requested.emit)
+        self.rescan_button.clicked.connect(self.on_rescan_button_clicked)
         layout.addWidget(self.rescan_button)
 
         # Set the layout of the content_area to the QVBoxLayout
         self.content_area.setLayout(layout)
+
+    def on_rescan_button_clicked(self):
+        self.hide()
+        self.rescan_requested.emit()
 
     def on_button_clicked(self, device):
         # Perform an action with the device
         self.hide()
         self.check_resistance = CheckResistance(device)
         self.check_resistance.show()
-

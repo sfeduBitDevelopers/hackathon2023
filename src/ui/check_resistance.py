@@ -1,10 +1,11 @@
 import os
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QRect, QPropertyAnimation, QThread, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QFrame, QWidget, QVBoxLayout, QSizePolicy
+from PyQt5.QtCore import Qt, QRect, QPropertyAnimation, QThread, pyqtSignal, QEasingCurve
+from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QFrame, QWidget, QVBoxLayout, QSizePolicy, QPushButton
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtSvg import QSvgWidget
+from time import sleep
 
 from src.core.log_config import logger
 from src.brainbit.check_resistance import BrainbitCheckResistance
@@ -122,82 +123,94 @@ class CheckResistance(QMainWindow):
         self.scan_thread.resist_finished.connect(self.on_resist_finished)
         self.scan_thread.start()
 
-    # def on_resist_finished(self, brainbit_check_resistance):
-    #     self.brainbit_check_resistance = brainbit_check_resistance
-    #     resistance = brainbit_check_resistance.resistance
-    #     for i, (x_icon, check_icon) in enumerate(zip(self.x_icons, self.check_icons)):
-    #         # Determine the sensor name based on the icon index
-    #         sensor_name = ["O1", "T3", "T4", "O2"][i]
-    #
-    #         # Animate the transition if the resistance is lower than 2*10^6
-    #         if resistance[sensor_name][-1] < 2 * 10 ** 6:
-    #             logger.info(f"Resistance for {sensor_name} is good")
-    #         else:
-    #             logger.info(f"Bad connection for {sensor_name}")
-    #
-    #         self.animation1 = QPropertyAnimation(x_icon, b"opacity")
-    #         self.animation1.setDuration(1000)
-    #         self.animation1.setStartValue(1.0)
-    #         self.animation1.setEndValue(0.0)
-    #
-    #         self.animation2 = QPropertyAnimation(check_icon, b"opacity")
-    #         self.animation2.setDuration(1000)
-    #         self.animation2.setStartValue(0.0)
-    #         self.animation2.setEndValue(1.0)
-    #
-    #         # Start the second animation when the first animation finishes
-    #         self.animation1.finished.connect(self.animation2.start)
-    #
-    #         # Hide the 'x' icon and show the 'check' icon when the second animation finishes
-    #         self.animation2.finished.connect(x_icon.hide)
-    #         self.animation2.finished.connect(check_icon.show)
-    #
-    #         # Start the first animation
-    #         self.animation1.start()
-    #
-    #         # Store the QPropertyAnimation objects as instance variables
-    #         self.animations.append(self.animation1)
-    #         self.animations.append(self.animation2)
     def on_resist_finished(self, brainbit_check_resistance):
         self.brainbit_check_resistance = brainbit_check_resistance
         resistance = brainbit_check_resistance.resistance
+        bad_connection_detected = False
         for i in range(4):
             # Determine the sensor name based on the icon index
             sensor_name = ["O1", "T3", "T4", "O2"][i]
 
-            # Animate the transition if the resistance is lower than 2*10^6
-            if resistance[sensor_name][-1] < 2 * 10 ** 6:
-                logger.info(f"Resistance for {sensor_name} is good")
-                self.x_icon = self.x_icons[i]
-                self.check_icon = self.check_icons[i]
+            try:
+                # Animate the transition if the resistance is lower than 2*10^6
+                if resistance[sensor_name][-1] < 2 * 10 ** 6:
+                    logger.info(f"Resistance for {sensor_name} is good")
+                    self.x_icon = self.x_icons[i]
+                    self.check_icon = self.check_icons[i]
 
-                self.animation1 = QPropertyAnimation(self.x_icon, b"opacity")
-                self.animation1.setDuration(1000)
-                self.animation1.setStartValue(1.0)
-                self.animation1.setEndValue(0.0)
+                    self.animation1 = QPropertyAnimation(self.x_icon, b"opacity")
+                    self.animation1.setDuration(1000)
+                    self.animation1.setStartValue(1.0)
+                    self.animation1.setEndValue(0.0)
 
-                self.animation2 = QPropertyAnimation(self.check_icon, b"opacity")
-                self.animation2.setDuration(1000)
-                self.animation2.setStartValue(0.0)
-                self.animation2.setEndValue(1.0)
+                    self.animation2 = QPropertyAnimation(self.check_icon, b"opacity")
+                    self.animation2.setDuration(1000)
+                    self.animation2.setStartValue(0.0)
+                    self.animation2.setEndValue(1.0)
 
-                # Start the second animation when the first animation finishes
-                self.animation1.finished.connect(self.animation2.start)
+                    # Start the second animation when the first animation finishes
+                    self.animation1.finished.connect(self.animation2.start)
 
-                # Hide the 'x' icon and show the 'check' icon when the second animation finishes
-                self.animation2.finished.connect(self.x_icon.hide)
-                self.animation2.finished.connect(self.check_icon.show)
+                    # Hide the 'x' icon and show the 'check' icon when the second animation finishes
+                    self.animation2.finished.connect(self.x_icon.hide)
+                    self.animation2.finished.connect(self.check_icon.show)
 
-                # Start the first animation
-                self.animation1.start()
+                    # Start the first animation
+                    self.animation1.start()
 
-                # Store the QPropertyAnimation objects as instance variables
-                self.animations.append(self.animation1)
-                self.animations.append(self.animation2)
-            else:
-                logger.info(f"Bad connection for {sensor_name}")
+                    # Store the QPropertyAnimation objects as instance variables
+                    self.animations.append(self.animation1)
+                    self.animations.append(self.animation2)
+                else:
+                    logger.info(f"Bad connection for {sensor_name}")
+                    bad_connection_detected = True
+            except Exception as e:
+                logger.error(f"Error occurred while checking resistance for {sensor_name} {e}")
 
+        # If a bad connection was detected, start the resistance check again
+        if bad_connection_detected:
+            self.check_resistance()
+        else:
+            # Create the button to open the other window
+            self.other_window_button = QPushButton("Далее", self)
+            self.other_window_button.setGeometry(350, 500, 100, 50)
+            self.other_window_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: #87CEEB;
+                        font: 20pt 'Arial';
+                        color: #FFFFFF;
+                        border: none;
+                        border-radius: 15px;
+                        padding: 10px;
+                        min-width: 100px;
+                    }
+                    QPushButton:hover {
+                        background-color: #66B2FF;
+                    }
+                """)  # Add your CSS-like styles here
+            self.other_window_button.clicked.connect(self.on_other_window_button_clicked)
 
+            # Add the QPushButton to the layout
+            self.layout().addWidget(self.other_window_button)
+
+            # Hide the button initially
+            self.other_window_button.hide()
+
+            # Create a QPropertyAnimation to animate the button's opacity
+            self.button_animation = QPropertyAnimation(self.other_window_button, b"windowOpacity")
+            self.button_animation.setDuration(1000)  # Duration of 1 second
+            self.button_animation.setStartValue(0.0)  # Start from fully transparent
+            self.button_animation.setEndValue(1.0)  # End at fully opaque
+            self.button_animation.setEasingCurve(
+                QEasingCurve.InOutQuad)  # Use an easing curve for a more natural animation
+
+            # Show the button and start the animation when the last check icon animation finishes
+            self.animation2.finished.connect(self.other_window_button.show)
+            self.animation2.finished.connect(self.button_animation.start)
+
+    def on_other_window_button_clicked(self):
+        # Open the other window
+        pass  # Replace with the code to open the other window
 
 
 if __name__ == '__main__':
