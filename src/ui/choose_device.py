@@ -18,6 +18,8 @@ class ChooseDevice(QMainWindow):
     def setup_ui(self):
         # Set window size to 800x600
         self.setGeometry(0, 0, 800, 600)
+        self.setWindowTitle("BrainBit")
+        self.setFixedSize(800, 600)
 
         # Center the window
         screen_geometry = QApplication.desktop().screenGeometry()

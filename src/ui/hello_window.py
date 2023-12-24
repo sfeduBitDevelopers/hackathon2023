@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QApplication, QLabel, QFra
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QPalette
 
-from src.ui.choose_device import ChooseDevice
 from src.ui.progress_bar_scan import ProgressBarWindow
 
 
@@ -14,6 +13,8 @@ class HelloWindow(QMainWindow):
     def setup_ui(self):
         # Set window size to 800x600
         self.setGeometry(0, 0, 800, 600)
+        self.setWindowTitle("BrainBit")
+        self.setFixedSize(800, 600)
 
         # Center the window
         screen_geometry = QApplication.desktop().screenGeometry()

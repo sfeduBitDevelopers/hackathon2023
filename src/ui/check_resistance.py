@@ -9,6 +9,7 @@ from time import sleep
 
 from src.core.log_config import logger
 from src.brainbit.check_resistance import BrainbitCheckResistance
+from src.ui.registration import RegistrationWindow
 
 
 def resist(device):
@@ -41,6 +42,8 @@ class CheckResistance(QMainWindow):
     def setup_ui(self):
         # Set window size to 800x600
         self.setGeometry(0, 0, 800, 600)
+        self.setWindowTitle("BrainBit")
+        self.setFixedSize(800, 600)
 
         # Center the window
         screen_geometry = QApplication.desktop().screenGeometry()
@@ -210,7 +213,9 @@ class CheckResistance(QMainWindow):
 
     def on_other_window_button_clicked(self):
         # Open the other window
-        pass  # Replace with the code to open the other window
+        self.registration_window = RegistrationWindow()
+        self.registration_window.show()
+        self.hide()
 
 
 if __name__ == '__main__':
