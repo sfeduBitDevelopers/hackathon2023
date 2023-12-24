@@ -213,7 +213,7 @@ class CheckResistance(QMainWindow):
 
     def on_other_window_button_clicked(self):
         # Open the other window
-        self.registration_window = RegistrationWindow()
+        self.registration_window = RegistrationWindow(self.device)
         self.registration_window.show()
         self.hide()
 

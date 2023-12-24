@@ -7,8 +7,9 @@ from src.ui.app import AppWindow
 
 
 class RegistrationWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, device):
         super(QMainWindow, self).__init__()
+        self.device = device
         self.setup_ui()
 
     def setup_ui(self):
@@ -117,6 +118,6 @@ class RegistrationWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
-    window = RegistrationWindow()
+    window = RegistrationWindow(None)
     window.show()
     app.exec_()
